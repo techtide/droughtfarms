@@ -66,6 +66,8 @@ wms_vegetation = wms_vegetation_req.get_data()
 print(wms_vegetation)
 print(wms_ndwi)
 
+"""The variable **sum** here is where our final map is. This is the list of figure 3."""
+
 print(wms_vegetation[0]+wms_ndwi[0])
 # The sum of vegetation and true colour images
 sum = wms_vegetation[0]+wms_ndwi[0]
@@ -112,5 +114,50 @@ from sklearn import tree
 """INPUT:  * The longitude (x axis of the superimposed plot) and latitude (y axis of the superimposed plot)
               * Weather avg_highlow_delta
               * region number (to-do)
+              
+ OUTPUT: 
+ * Farm yes, farm no
 """
 
+#X_net = []
+#def train():
+  # Here, brute force the longitude and latitude, query the satelite, and collect training data.
+ # X_train = []
+  #return null
+
+# in the future we'll use decision trees, but training and testing datasets aren't openly available without brute forcing requests to the satelite... which would take ages... so we are just going to do this with plain weights
+
+"""What this is doing is using a makeshift scale with weights, which takes in the weather high-low average delta for this week, longitude, and latitude. From long and lat it gets the intensity from FIGURE 3 in the earlier plots - so the superimposed graph.
+It will then repeat this for all longitudes specified in the bounding area, with their respective latitudes.
+"""
+
+#dummy, we'd be getting this from the plot
+values_for_all_long = [10,20,30,40,50,60,70,80,90,100]
+#dummy, we'd be getting this from the plot
+values_for_respective_lat = [90, 80, -16, 28, 30, 40, 60, 80, -18, -12]
+
+def calculate_scale(long, lat, weather):
+  #first get the intensity from the superimposed graph with these longitude and latitude
+  # we do this by longitude (as it's on the x axis of the plot)
+  # print(wms_vegetation[0][10][-1]) this gets what the intensity is when longitude = 10 and latitude is the last value possible (so the largest latitude) 
+  WEATHER_WEIGHT = 0.25
+  INTENSITY_WEIGHT = 0.75
+  intensity = 0
+  for i in range(0, len(values_for_all_long)):
+    respective_lat = values_for_respective_lat[i]
+    respective_long = values_for_all_long[i]
+    #this intensity is the NDWI + NDVI
+    intensity += sum[0][respective_lat][respective_long]    
+  weighted_value = 1+(WEATHER_WEIGHT * weather)+(INTENSITY_WEIGHT * intensity)
+
+"""### The value from the scale
+calculate_scale() returns a weighted sum. You need to plug IN:
+* longitude and latitude that is dark + concentrated from map figure 3
+* weather high-low delta from the current week (this is from the avg_highlow_delta)
+"""
+
+YOUR_LONG = 0 
+YOUR_LAT = 0
+print(calculate_scale(YOUR_LONG, YOUR_LAT, avg_highlow_delta))
+
+"""Copyright Arman Bhalla, 2018. All Rights Reserved."""
