@@ -42,8 +42,14 @@ def plot_image(image, factor=1):
 betsiboka_coords_wgs84 = [46.16, -16.15, 46.51, -15.58]
 betsiboka_bbox = BBox(bbox=betsiboka_coords_wgs84, crs=CRS.WGS84)
 
-#bounds = [35.16, -15.15, 35.51, -15.15]
-bounds_bbox = BBox(bbox=bounds, crs=CRS.WGS84)
+"""## Data Entry Point
+Change your BBox to the WGS 84 co-ordinates of the area you want to analyse. 
+This is a helpful tool to get this info: https://epsg.io/map#srs=4326&x=0.000000&y=0.000000&z=1&layer=streets
+"""
+
+# testing different coordinate system thing
+# bounds = [35.16, -15.15, 35.51]
+#bounds_bbox = BBox(bbox=bounds, crs=CRS.WGS84)
 wms_ndwi_req = WmsRequest(layer='NDWI',
                                     bbox=betsiboka_bbox,
 #                                     time='2017-12-15',
@@ -64,10 +70,47 @@ print(wms_vegetation[0]+wms_ndwi[0])
 # The sum of vegetation and true colour images
 sum = wms_vegetation[0]+wms_ndwi[0]
 
-print('Returned data is of type = %s and length %d.' % (type(wms_true_color_img), len(wms_true_color_img)))
-print('Single element in the list is of type {} and has shape {}'.format(type(wms_true_color_img[-1]), wms_true_color_img[-1].shape))
-
-plot_image(wms_true_color_img[-1]) # water
+#print('Returned data is of type = %s and length %d.' % (type(wms_ndwi), len(wms_ndwi)))
+#print('Single element in the list is of type {} and has shape {}'.format(type(wms_ndwi[-1]), wms_ndwi[-1].shape))
+print("Fig 1: NDWI WATER SCALE, the darker, the better")
+plot_image(wms_ndwi[-1]) # water
+print("Fig 2: NDVI VEGETATION SCALE, the more concentrated, the better")
 plot_image(wms_vegetation[-1]) #vegetation
+print("Fig 3: SUPERIMPOSED UPON EACH OTHER, more concentrated + more dark the better")
 plot_image(sum)
+
+!pip install weather-api
+
+"""# Data Entry Point
+Enter the long and lat from the darkest point which is NOT sea and is within your plot of land from above.
+Ideally there would be a method to do this automatically, but due to time constraints, I've not implemented this.
+"""
+
+from weather import Weather, Unit
+weather = Weather(Unit.CELSIUS)
+#enter the lat and long NOT IN WGS 84 EPSG PROJECTION SYSTEM. JUST NORMAL LATITUDE AND LONGITUDE OF THE SITE YOU FIND OUT
+lookup = weather.lookup_by_latlng(53.3494,-6.2601)
+condition = lookup.condition
+forecasts = lookup.forecast
+avg_highlow_delta = 0
+for forecast in forecasts:
+#     print(forecast.text)
+#     print(forecast.date)
+#     print(forecast.high)
+#     print(forecast.low)
+    avg_highlow_delta += int(forecast.high) + int(forecast.low)
+# average it over the number of forecasts
+avg_highlow_delta/=7
+print(avg_highlow_delta)
+
+"""This is where we start to use the data from the weather and the NDWI water scale and NDVI scale plot."""
+
+import scipy, sklearn
+import numpy as np
+from sklearn import tree
+
+"""INPUT:  * The longitude (x axis of the superimposed plot) and latitude (y axis of the superimposed plot)
+              * Weather avg_highlow_delta
+              * region number (to-do)
+"""
 
